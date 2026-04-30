@@ -1,0 +1,67 @@
+{
+  "name": "agent-tools",
+  "version": "0.1.0",
+  "description": "Model-driven agent tools (web fetch, web search, ...) built on Vercel AI SDK. Consumable via tool_call or MCP.",
+  "keywords": [
+    "agent",
+    "ai",
+    "mcp",
+    "tool-call",
+    "tools",
+    "vercel-ai-sdk",
+    "web-fetch",
+    "web-search"
+  ],
+  "license": "MIT",
+  "author": "",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./tools": {
+      "types": "./dist/tools/index.d.mts",
+      "import": "./dist/tools/index.mjs"
+    },
+    "./model": {
+      "types": "./dist/model.d.mts",
+      "import": "./dist/model.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "check": "pnpm lint && pnpm fmt:check && pnpm typecheck && pnpm build",
+    "test": "node --test --import tsx 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.42",
+    "ai": "^6.0.170",
+    "zod": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "oxfmt": "^0.47.0",
+    "oxlint": "^1.62.0",
+    "tsdown": "^0.21.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
