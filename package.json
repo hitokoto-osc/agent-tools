@@ -1,5 +1,5 @@
 {
-  "name": "agent-tools",
+  "name": "@hitokoto/agent-tools",
   "version": "0.1.0",
   "description": "Model-driven agent tools (web fetch, web search, ...) built on Vercel AI SDK. Consumable via tool_call or MCP.",
   "keywords": [
@@ -35,6 +35,10 @@
       "import": "./dist/model.mjs"
     }
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
@@ -49,7 +53,8 @@
     "lint-staged": "lint-staged",
     "check": "pnpm lint && pnpm fmt:check && pnpm typecheck && pnpm build",
     "test": "node --test --import tsx 'src/**/*.test.ts'",
-    "test:integration": "node --import=dotenv/config --import=tsx --test 'tests/integration/**/*.test.ts'"
+    "test:integration": "node --import=dotenv/config --import=tsx --test 'tests/integration/**/*.test.ts'",
+    "release": "pnpm build && npm publish"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.42",
