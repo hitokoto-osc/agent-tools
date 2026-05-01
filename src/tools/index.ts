@@ -8,5 +8,26 @@ export {
 } from "./web-fetch.js";
 export type { WebFetchInput, WebFetchOptions, WebFetchResult } from "./web-fetch.js";
 
-export { webSearch } from "./web-search.js";
-export type { WebSearchOptions, WebSearchResult, SearchBackend, SearchHit } from "./web-search.js";
+export {
+  SearchProviderError,
+  serper,
+  serperQueryItemSchema,
+  serperResponseListSchema,
+  serperResponseSchema,
+  webSearch,
+  webSearchInputSchema,
+  webSearchOutputSchema,
+} from "./web-search.js";
+export type {
+  SearchBackend,
+  SearchBackendArgs,
+  SearchHit,
+  SerperBackend,
+  SerperBatchFn,
+  SerperOptions,
+  SerperQueryItem,
+  SerperResponse,
+  WebSearchInput,
+  WebSearchOptions,
+  WebSearchResult,
+} from "./web-search.js";
