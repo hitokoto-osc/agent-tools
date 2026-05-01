@@ -53,19 +53,22 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.42",
     "ai": "^6.0.170",
+    "lru-cache": "^11.3.5",
+    "turndown": "^7.2.4",
     "zod": "^4.4.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
-    "@types/node": "^22.10.0",
+    "@types/node": "^25.6.0",
+    "@types/turndown": "^5.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
     "tsdown": "^0.21.10",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^6.0.3"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,ts,tsx,cts,mts}": [

@@ -1,0 +1,388 @@
+import { isIP } from "node:net";
+import { generateText, type LanguageModel } from "ai";
+import { LRUCache } from "lru-cache";
+import { isPreapprovedHost } from "./preapproved.js";
+import { makeSecondaryModelPrompt } from "./prompt.js";
+
+export const MAX_URL_LENGTH = 2000;
+export const MAX_HTTP_CONTENT_LENGTH = 10 * 1024 * 1024;
+export const FETCH_TIMEOUT_MS = 60_000;
+export const MAX_REDIRECTS = 10;
+export const MAX_MARKDOWN_LENGTH = 100_000;
+export const CACHE_TTL_MS = 15 * 60 * 1000;
+export const MAX_CACHE_SIZE_BYTES = 50 * 1024 * 1024;
+export const DEFAULT_USER_AGENT = "agent-tools/0.1 WebFetch";
+export const ACCEPT_HEADER = "text/markdown, text/html, */*";
+
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+// Reject IP literals that resolve to loopback, link-local, or RFC1918 ranges.
+// The upstream tool relied on Anthropic's domain-info preflight + a network
+// egress proxy for SSRF protection; both were stripped from this clone, so
+// validation now has to catch obvious internal addresses on its own. DNS
+// rebinding and private-DNS attacks still need network-level enforcement.
+function isBlockedIPv4(hostname: string): boolean {
+  const [a = 0, b = 0] = hostname.split(".").map((part) => Number.parseInt(part, 10));
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && (b === 0 || b === 168)) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  );
+}
+
+function isBlockedIPv6(hostname: string): boolean {
+  if (hostname === "::" || hostname === "::1") return true;
+  if (hostname.startsWith("fc") || hostname.startsWith("fd")) return true;
+  if (/^fe[89ab]/.test(hostname)) return true;
+  if (hostname.startsWith("::ffff:")) {
+    const mapped = hostname.slice("::ffff:".length);
+    return isIP(mapped) === 4 && isBlockedIPv4(mapped);
+  }
+  return false;
+}
+
+function isBlockedIpLiteral(hostname: string): boolean {
+  const normalized = hostname.replace(/^\[(.*)\]$/, "$1").toLowerCase();
+  const family = isIP(normalized);
+  if (family === 4) return isBlockedIPv4(normalized);
+  if (family === 6) return isBlockedIPv6(normalized);
+  return false;
+}
+
+export class URLValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "URLValidationError";
+  }
+}
+
+export interface RedirectInfo {
+  type: "redirect";
+  originalUrl: string;
+  redirectUrl: string;
+  statusCode: number;
+}
+
+export interface FetchedContent {
+  content: string;
+  bytes: number;
+  code: number;
+  codeText: string;
+  contentType: string;
+  isBinary: boolean;
+  url: string;
+}
+
+export interface GetURLMarkdownContentOptions {
+  signal: AbortSignal;
+  maxContentBytes?: number;
+  userAgent?: string;
+}
+
+export interface ApplyPromptToMarkdownOptions {
+  model: LanguageModel;
+  content: string;
+  prompt: string;
+  abortSignal: AbortSignal;
+  isPreapproved: boolean;
+  maxMarkdownChars?: number;
+}
+
+interface FetchOk {
+  type: "ok";
+  response: Response;
+  url: string;
+}
+
+const URL_CACHE = new LRUCache<string, FetchedContent>({
+  max: 200,
+  maxSize: MAX_CACHE_SIZE_BYTES,
+  ttl: CACHE_TTL_MS,
+  sizeCalculation: (entry) => Math.max(1, Buffer.byteLength(entry.content)),
+});
+
+export function clearWebFetchCache(): void {
+  URL_CACHE.clear();
+}
+
+// Lazy singleton — defers loading turndown (~1.4 MB retained heap with its
+// domino DOM) until the first HTML fetch and reuses one stateless instance.
+type TurndownServiceLike = { turndown(html: string): string };
+type TurndownCtor = new () => TurndownServiceLike;
+let turndownServicePromise: Promise<TurndownServiceLike> | undefined;
+
+function getTurndownService(): Promise<TurndownServiceLike> {
+  return (turndownServicePromise ??= import("turndown").then((module) => {
+    const Turndown = (module as unknown as { default: TurndownCtor }).default;
+    return new Turndown();
+  }));
+}
+
+export function validateURL(url: string): void {
+  if (url.length > MAX_URL_LENGTH) {
+    throw new URLValidationError(`URL exceeds ${MAX_URL_LENGTH} characters`);
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new URLValidationError(`Invalid URL: ${url}`);
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new URLValidationError("URL must use http or https");
+  }
+
+  if (parsed.username || parsed.password) {
+    throw new URLValidationError("URL must not include embedded credentials");
+  }
+
+  if (isBlockedIpLiteral(parsed.hostname)) {
+    throw new URLValidationError("URL hostname must not be a private or reserved IP address");
+  }
+
+  if (parsed.hostname.split(".").length < 2) {
+    throw new URLValidationError("URL hostname must be fully qualified");
+  }
+}
+
+export function upgradeHttpToHttps(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.protocol === "http:") {
+    parsed.protocol = "https:";
+  }
+  return parsed.toString();
+}
+
+export function isPreapprovedUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return isPreapprovedHost(parsed.hostname, parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Allow only same-origin redirects, plus toggling the `www.` prefix. Anything
+ * that crosses protocol, port, host, or carries credentials is rejected — the
+ * caller is expected to reissue the request explicitly against the new URL.
+ */
+export function isPermittedRedirect(originalUrl: string, redirectUrl: string): boolean {
+  try {
+    const from = new URL(originalUrl);
+    const to = new URL(redirectUrl);
+    if (from.protocol !== to.protocol) return false;
+    if (from.port !== to.port) return false;
+    if (to.username || to.password) return false;
+    const stripWww = (h: string) => h.replace(/^www\./, "");
+    return stripWww(from.hostname) === stripWww(to.hostname);
+  } catch {
+    return false;
+  }
+}
+
+export function redirectStatusText(statusCode: number): string {
+  if (statusCode === 301) return "Moved Permanently";
+  if (statusCode === 308) return "Permanent Redirect";
+  if (statusCode === 307) return "Temporary Redirect";
+  return "Found";
+}
+
+export function isRedirectInfo<T extends object>(
+  response: T | RedirectInfo,
+): response is RedirectInfo {
+  return "type" in response && (response as { type?: unknown }).type === "redirect";
+}
+
+export async function getWithPermittedRedirects(
+  url: string,
+  signal: AbortSignal,
+  options: { userAgent?: string; maxRedirects?: number } = {},
+  depth = 0,
+): Promise<FetchOk | RedirectInfo> {
+  const maxRedirects = options.maxRedirects ?? MAX_REDIRECTS;
+  if (depth > maxRedirects) {
+    throw new Error(`Too many redirects (exceeded ${maxRedirects})`);
+  }
+
+  const response = await globalThis.fetch(url, {
+    headers: {
+      Accept: ACCEPT_HEADER,
+      "User-Agent": options.userAgent ?? DEFAULT_USER_AGENT,
+    },
+    redirect: "manual",
+    signal,
+  });
+
+  if (REDIRECT_STATUSES.has(response.status)) {
+    const location = response.headers.get("location");
+    if (!location) {
+      throw new Error("Redirect response missing Location header");
+    }
+    const redirectUrl = new URL(location, url).toString();
+    if (!isPermittedRedirect(url, redirectUrl)) {
+      return {
+        type: "redirect",
+        originalUrl: url,
+        redirectUrl,
+        statusCode: response.status,
+      };
+    }
+    return getWithPermittedRedirects(redirectUrl, signal, options, depth + 1);
+  }
+
+  return { type: "ok", response, url };
+}
+
+interface LimitedBody {
+  buffer: Buffer;
+  truncated: boolean;
+}
+
+export async function readBodyWithLimit(
+  response: Response,
+  maxBytes = MAX_HTTP_CONTENT_LENGTH,
+): Promise<LimitedBody> {
+  if (!response.body) {
+    return { buffer: Buffer.alloc(0), truncated: false };
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  let truncated = false;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const remaining = maxBytes - total;
+    if (value.byteLength > remaining) {
+      if (remaining > 0) {
+        chunks.push(value.subarray(0, remaining));
+        total += remaining;
+      }
+      truncated = true;
+      await reader.cancel();
+      break;
+    }
+
+    chunks.push(value);
+    total += value.byteLength;
+  }
+
+  return { buffer: Buffer.concat(chunks, total), truncated };
+}
+
+export function isHtmlContentType(contentType: string): boolean {
+  return /text\/html|application\/xhtml/i.test(contentType);
+}
+
+export function isMarkdownContentType(contentType: string): boolean {
+  return /text\/markdown/i.test(contentType);
+}
+
+export function isBinaryContentType(contentType: string): boolean {
+  const mediaType = contentType.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (!mediaType || mediaType.startsWith("text/")) return false;
+  if (mediaType.endsWith("+json") || mediaType.endsWith("+xml")) return false;
+  return ![
+    "application/json",
+    "application/javascript",
+    "application/ecmascript",
+    "application/x-javascript",
+    "application/xml",
+    "application/xhtml+xml",
+    "image/svg+xml",
+  ].includes(mediaType);
+}
+
+export async function htmlToMarkdown(html: string): Promise<string> {
+  return (await getTurndownService()).turndown(html);
+}
+
+export async function getURLMarkdownContent(
+  url: string,
+  options: GetURLMarkdownContentOptions,
+): Promise<FetchedContent | RedirectInfo> {
+  validateURL(url);
+
+  const cacheKey = upgradeHttpToHttps(url);
+  const cachedEntry = URL_CACHE.get(cacheKey);
+  if (cachedEntry) return cachedEntry;
+
+  const result = await getWithPermittedRedirects(cacheKey, options.signal, {
+    maxRedirects: MAX_REDIRECTS,
+    userAgent: options.userAgent ?? DEFAULT_USER_AGENT,
+  });
+
+  if (isRedirectInfo(result)) return result;
+
+  const contentType = result.response.headers.get("content-type") ?? "";
+  const { buffer, truncated } = await readBodyWithLimit(
+    result.response,
+    options.maxContentBytes ?? MAX_HTTP_CONTENT_LENGTH,
+  );
+  const bytes = buffer.byteLength;
+
+  let content: string;
+  let isBinary = false;
+  if (isBinaryContentType(contentType)) {
+    isBinary = true;
+    content = `[Binary content (${contentType || "unknown content type"}, ${bytes} bytes) - body omitted]`;
+  } else {
+    const raw = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
+    content = isHtmlContentType(contentType) ? await htmlToMarkdown(raw) : raw;
+    if (truncated) {
+      content += "\n\n[Content truncated due to length...]";
+    }
+  }
+
+  const entry: FetchedContent = {
+    bytes,
+    code: result.response.status,
+    codeText: result.response.statusText,
+    content,
+    contentType,
+    isBinary,
+    url: result.url,
+  };
+
+  // Skip caching when the body was truncated against a caller-provided limit:
+  // a later call with the default 10 MB cap would otherwise reuse the short
+  // entry and silently return partial content.
+  if (!truncated) {
+    URL_CACHE.set(cacheKey, entry);
+  }
+  return entry;
+}
+
+export async function applyPromptToMarkdown({
+  model,
+  content,
+  prompt,
+  abortSignal,
+  isPreapproved,
+  maxMarkdownChars = MAX_MARKDOWN_LENGTH,
+}: ApplyPromptToMarkdownOptions): Promise<string> {
+  const truncatedContent =
+    content.length > maxMarkdownChars
+      ? `${content.slice(0, maxMarkdownChars)}\n\n[Content truncated due to length...]`
+      : content;
+
+  const { text } = await generateText({
+    model,
+    prompt: makeSecondaryModelPrompt(truncatedContent, prompt, isPreapproved),
+    abortSignal,
+  });
+
+  return text || "No response from model";
+}

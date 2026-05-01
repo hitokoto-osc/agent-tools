@@ -10,3 +10,4 @@ coverage/
 *.tsbuildinfo
 .idea/
 .vscode/
+.ace-tool/
