@@ -40,10 +40,13 @@
     "dev": "tsdown --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "clean": "rm -rf dist",
+    "prepare": "husky",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
+    "commitlint": "commitlint",
+    "lint-staged": "lint-staged",
     "check": "pnpm lint && pnpm fmt:check && pnpm typecheck && pnpm build",
     "test": "node --test --import tsx 'src/**/*.test.ts'"
   },
@@ -53,12 +56,23 @@
     "zod": "^4.4.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@types/node": "^22.10.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
     "tsdown": "^0.21.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "lint-staged": {
+    "*.{js,cjs,mjs,ts,tsx,cts,mts}": [
+      "oxlint --fix",
+      "oxfmt"
+    ],
+    "*.{json,md}": "oxfmt"
   },
   "engines": {
     "node": ">=20"
