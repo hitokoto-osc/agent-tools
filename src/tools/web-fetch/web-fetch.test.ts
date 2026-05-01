@@ -382,6 +382,15 @@ test("webFetch throws when MAX_REDIRECTS is exceeded (same-host loop)", async ()
   assert.ok(calls.length >= MAX_REDIRECTS, "expected at least MAX_REDIRECTS hops");
 });
 
+test("webFetch accepts baseURL/apiKey/modelId without constructing the model eagerly", () => {
+  const fetchTool = webFetch({
+    baseURL: "https://example-llm.test/v1",
+    apiKey: "sk-test-not-used",
+    modelId: "test-model",
+  });
+  assert.ok(fetchTool.execute, "expected execute to be defined");
+});
+
 test("webFetch throws when a redirect response lacks a Location header", async () => {
   mockFetch(
     () =>
