@@ -1,6 +1,6 @@
 {
   "name": "@hitokoto/agent-tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Model-driven agent tools (web fetch, web search, ...) built on Vercel AI SDK. Consumable via tool_call or MCP.",
   "keywords": [
     "agent",
