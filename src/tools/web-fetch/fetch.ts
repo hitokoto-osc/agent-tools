@@ -85,6 +85,41 @@ export interface GetURLMarkdownContentOptions {
   userAgent?: string;
 }
 
+/**
+ * Pluggable fetcher for `webFetch`. Decouples "retrieve a URL as Markdown"
+ * from the default direct-fetch + turndown implementation, so hosted fetch
+ * services (e.g. DeepSeek Fetch API) can be swapped in without changing the
+ * downstream prompt-processing pipeline.
+ */
+export type FetchBackend = (
+  url: string,
+  options: GetURLMarkdownContentOptions,
+) => Promise<FetchedContent | RedirectInfo>;
+
+export interface FetchProviderErrorOptions {
+  provider: string;
+  status?: number;
+  code?: string;
+  retryAfter?: string;
+  cause?: unknown;
+}
+
+export class FetchProviderError extends Error {
+  readonly provider: string;
+  readonly status: number | undefined;
+  readonly code: string | undefined;
+  readonly retryAfter: string | undefined;
+
+  constructor(message: string, options: FetchProviderErrorOptions) {
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
+    this.name = "FetchProviderError";
+    this.provider = options.provider;
+    this.status = options.status;
+    this.code = options.code;
+    this.retryAfter = options.retryAfter;
+  }
+}
+
 export interface ApplyPromptToMarkdownOptions {
   model: LanguageModel;
   content: string;

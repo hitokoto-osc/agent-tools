@@ -5,6 +5,10 @@ export interface SearchHit {
   position?: number;
   date?: string;
   source?: string;
+  /** Provider relevance score when available (DeepSeek: `rerank_score`, 0-3, >=1.5 is high-quality). */
+  score?: number;
+  /** Provider authority tier when available (DeepSeek: 0-4, >=3 is highly authoritative). */
+  authority?: number;
 }
 
 export interface SearchBackendArgs {

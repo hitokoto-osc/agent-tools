@@ -4,6 +4,7 @@ export {
   clearWebFetchCache,
   DEFAULT_USER_AGENT,
   FETCH_TIMEOUT_MS,
+  FetchProviderError,
   getURLMarkdownContent,
   htmlToMarkdown,
   isBinaryContentType,
@@ -22,10 +23,20 @@ export {
 } from "./fetch.js";
 export type {
   ApplyPromptToMarkdownOptions,
+  FetchBackend,
   FetchedContent,
+  FetchProviderErrorOptions,
   GetURLMarkdownContentOptions,
   RedirectInfo,
 } from "./fetch.js";
+
+export {
+  clearDeepSeekFetchCache,
+  deepseekFetch,
+  deepseekFetchRequestSchema,
+  deepseekFetchResponseSchema,
+} from "./providers/deepseek.js";
+export type { DeepSeekFetchOptions, DeepSeekFetchResponse } from "./providers/deepseek.js";
 
 export { isPreapprovedHost, PREAPPROVED_HOSTS } from "./preapproved.js";
 

@@ -10,6 +10,19 @@ export type {
 } from "./types.js";
 
 export {
+  deepseek,
+  deepseekRequestSchema,
+  deepseekResponseSchema,
+  deepseekResultSchema,
+} from "./providers/deepseek.js";
+export type {
+  DeepSeekOptions,
+  DeepSeekRequest,
+  DeepSeekResponse,
+  DeepSeekResult,
+} from "./providers/deepseek.js";
+
+export {
   serper,
   serperQueryItemSchema,
   serperResponseListSchema,

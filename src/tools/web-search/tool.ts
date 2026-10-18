@@ -10,6 +10,8 @@ const webSearchHitSchema = z.object({
   position: z.number().optional(),
   date: z.string().optional(),
   source: z.string().optional(),
+  score: z.number().optional(),
+  authority: z.number().optional(),
 });
 
 export const webSearchInputSchema = z.object({

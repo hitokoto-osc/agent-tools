@@ -12,6 +12,7 @@ import {
   MAX_HTTP_CONTENT_LENGTH,
   MAX_MARKDOWN_LENGTH,
   redirectStatusText,
+  type FetchBackend,
 } from "./fetch.js";
 import { DESCRIPTION } from "./prompt.js";
 
@@ -68,6 +69,12 @@ export interface WebFetchOptions {
   userAgent?: string;
   /** Request timeout in ms. Default 60_000. */
   timeoutMs?: number;
+  /**
+   * Pluggable URL→Markdown fetcher (e.g. `deepseekFetch()`). Defaults to the
+   * built-in direct-fetch + turndown pipeline with its LRU cache. Custom
+   * fetchers are responsible for their own caching and SSRF validation.
+   */
+  fetcher?: FetchBackend;
   /** @deprecated Use `maxContentBytes`. */
   maxBytes?: number;
   /** @deprecated Use `maxMarkdownChars`. */
@@ -148,7 +155,8 @@ export function webFetch(options: WebFetchOptions = {}) {
       const start = Date.now();
       const signal = combinedSignal(timeoutMs, abortSignal);
 
-      const response = await getURLMarkdownContent(url, {
+      const fetcher = options.fetcher ?? getURLMarkdownContent;
+      const response = await fetcher(url, {
         maxContentBytes,
         signal,
         userAgent,

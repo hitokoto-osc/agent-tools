@@ -1,14 +1,31 @@
 export {
+  clearDeepSeekFetchCache,
   clearWebFetchCache,
+  deepseekFetch,
+  deepseekFetchRequestSchema,
+  deepseekFetchResponseSchema,
+  FetchProviderError,
   isPreapprovedHost,
   PREAPPROVED_HOSTS,
   webFetch,
   webFetchInputSchema,
   webFetchOutputSchema,
 } from "./web-fetch.js";
-export type { WebFetchInput, WebFetchOptions, WebFetchResult } from "./web-fetch.js";
+export type {
+  DeepSeekFetchOptions,
+  DeepSeekFetchResponse,
+  FetchBackend,
+  FetchProviderErrorOptions,
+  WebFetchInput,
+  WebFetchOptions,
+  WebFetchResult,
+} from "./web-fetch.js";
 
 export {
+  deepseek,
+  deepseekRequestSchema,
+  deepseekResponseSchema,
+  deepseekResultSchema,
   SearchProviderError,
   serper,
   serperQueryItemSchema,
@@ -19,6 +36,10 @@ export {
   webSearchOutputSchema,
 } from "./web-search.js";
 export type {
+  DeepSeekOptions,
+  DeepSeekRequest,
+  DeepSeekResponse,
+  DeepSeekResult,
   SearchBackend,
   SearchBackendArgs,
   SearchHit,
