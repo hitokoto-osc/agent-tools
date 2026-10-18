@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import type { ToolCallOptions } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
-import { clearWebFetchCache, webFetch } from "../../src/tools/web-fetch/index.js";
-import type { WebFetchInput, WebFetchResult } from "../../src/tools/web-fetch/index.js";
+import { clearWebFetchCache, webFetch } from "../../src/tools/web-fetch/index.ts";
+import type { WebFetchInput, WebFetchResult } from "../../src/tools/web-fetch/index.ts";
 
 const apiKey = process.env["OPENAI_API_KEY"];
 const required = process.env["AGENT_TOOLS_INTEGRATION_REQUIRED"] === "1";

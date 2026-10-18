@@ -14,10 +14,10 @@ import {
   MAX_URL_LENGTH,
   URLValidationError,
   validateURL,
-} from "./fetch.js";
-import { isPreapprovedHost } from "./preapproved.js";
-import type { WebFetchInput, WebFetchOptions, WebFetchResult } from "./tool.js";
-import { webFetch } from "./tool.js";
+} from "./fetch.ts";
+import { isPreapprovedHost } from "./preapproved.ts";
+import type { WebFetchInput, WebFetchOptions, WebFetchResult } from "./tool.ts";
+import { webFetch } from "./tool.ts";
 
 const originalFetch = globalThis.fetch;
 

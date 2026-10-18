@@ -1,37 +1,37 @@
-export { webSearch, webSearchInputSchema, webSearchOutputSchema } from "./tool.js";
-export type { WebSearchInput, WebSearchOptions, WebSearchResult } from "./tool.js";
+export { webSearch, webSearchInputSchema, webSearchOutputSchema } from "./tool.ts";
+export type { WebSearchInput, WebSearchOptions, WebSearchResult } from "./tool.ts";
 
-export { SearchProviderError } from "./types.js";
+export { SearchProviderError } from "./types.ts";
 export type {
   SearchBackend,
   SearchBackendArgs,
   SearchHit,
   SearchProviderErrorOptions,
-} from "./types.js";
+} from "./types.ts";
 
 export {
   deepseek,
   deepseekRequestSchema,
   deepseekResponseSchema,
   deepseekResultSchema,
-} from "./providers/deepseek.js";
+} from "./providers/deepseek.ts";
 export type {
   DeepSeekOptions,
   DeepSeekRequest,
   DeepSeekResponse,
   DeepSeekResult,
-} from "./providers/deepseek.js";
+} from "./providers/deepseek.ts";
 
 export {
   serper,
   serperQueryItemSchema,
   serperResponseListSchema,
   serperResponseSchema,
-} from "./providers/serper.js";
+} from "./providers/serper.ts";
 export type {
   SerperBackend,
   SerperBatchFn,
   SerperOptions,
   SerperQueryItem,
   SerperResponse,
-} from "./providers/serper.js";
+} from "./providers/serper.ts";

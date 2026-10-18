@@ -1,7 +1,7 @@
 import { generateText, tool, type LanguageModel } from "ai";
 import { z } from "zod";
-import { defaultModel } from "../../model.js";
-import type { SearchBackend, SearchHit } from "./types.js";
+import { defaultModel } from "../../model.ts";
+import type { SearchBackend, SearchHit } from "./types.ts";
 
 const webSearchHitSchema = z.object({
   title: z.string(),

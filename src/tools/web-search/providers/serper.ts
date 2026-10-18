@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SearchProviderError, type SearchBackend, type SearchHit } from "../types.js";
+import { SearchProviderError, type SearchBackend, type SearchHit } from "../types.ts";
 
 export const serperQueryItemSchema = z.object({
   q: z.string().min(1),

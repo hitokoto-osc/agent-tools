@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { deepseekFetch } from "../../src/tools/web-fetch/index.js";
+import { deepseekFetch } from "../../src/tools/web-fetch/index.ts";
 
 const apiKey = process.env["DEEPSEEK_API_KEY"];
 const required = process.env["AGENT_TOOLS_INTEGRATION_REQUIRED"] === "1";

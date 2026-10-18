@@ -3,10 +3,10 @@ import { afterEach, test } from "node:test";
 import type { ToolCallOptions } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
 import { ZodError } from "zod";
-import { serper } from "./providers/serper.js";
-import type { SerperQueryItem } from "./providers/serper.js";
-import { webSearch } from "./tool.js";
-import { SearchProviderError } from "./types.js";
+import { serper } from "./providers/serper.ts";
+import type { SerperQueryItem } from "./providers/serper.ts";
+import { webSearch } from "./tool.ts";
+import { SearchProviderError } from "./types.ts";
 
 const originalFetch = globalThis.fetch;
 const originalSerperApiKey = process.env["SERPER_API_KEY"];

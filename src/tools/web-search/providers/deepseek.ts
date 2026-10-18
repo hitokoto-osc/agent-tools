@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SearchProviderError, type SearchBackend, type SearchHit } from "../types.js";
+import { SearchProviderError, type SearchBackend, type SearchHit } from "../types.ts";
 
 /**
  * DeepSeek Search API (`POST /v1/tools/search`).

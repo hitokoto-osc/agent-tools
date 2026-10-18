@@ -20,7 +20,7 @@ export {
   upgradeHttpToHttps,
   URLValidationError,
   validateURL,
-} from "./fetch.js";
+} from "./fetch.ts";
 export type {
   ApplyPromptToMarkdownOptions,
   FetchBackend,
@@ -28,19 +28,19 @@ export type {
   FetchProviderErrorOptions,
   GetURLMarkdownContentOptions,
   RedirectInfo,
-} from "./fetch.js";
+} from "./fetch.ts";
 
 export {
   clearDeepSeekFetchCache,
   deepseekFetch,
   deepseekFetchRequestSchema,
   deepseekFetchResponseSchema,
-} from "./providers/deepseek.js";
-export type { DeepSeekFetchOptions, DeepSeekFetchResponse } from "./providers/deepseek.js";
+} from "./providers/deepseek.ts";
+export type { DeepSeekFetchOptions, DeepSeekFetchResponse } from "./providers/deepseek.ts";
 
-export { isPreapprovedHost, PREAPPROVED_HOSTS } from "./preapproved.js";
+export { isPreapprovedHost, PREAPPROVED_HOSTS } from "./preapproved.ts";
 
-export { DESCRIPTION, makeSecondaryModelPrompt, WEB_FETCH_TOOL_NAME } from "./prompt.js";
+export { DESCRIPTION, makeSecondaryModelPrompt, WEB_FETCH_TOOL_NAME } from "./prompt.ts";
 
-export { webFetch, webFetchInputSchema, webFetchOutputSchema } from "./tool.js";
-export type { WebFetchInput, WebFetchOptions, WebFetchResult } from "./tool.js";
+export { webFetch, webFetchInputSchema, webFetchOutputSchema } from "./tool.ts";
+export type { WebFetchInput, WebFetchOptions, WebFetchResult } from "./tool.ts";

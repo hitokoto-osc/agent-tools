@@ -1,1 +1,1 @@
-export * from "./web-search/index.js";
+export * from "./web-search/index.ts";

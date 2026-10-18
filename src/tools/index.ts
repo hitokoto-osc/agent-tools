@@ -10,7 +10,7 @@ export {
   webFetch,
   webFetchInputSchema,
   webFetchOutputSchema,
-} from "./web-fetch.js";
+} from "./web-fetch.ts";
 export type {
   DeepSeekFetchOptions,
   DeepSeekFetchResponse,
@@ -19,7 +19,7 @@ export type {
   WebFetchInput,
   WebFetchOptions,
   WebFetchResult,
-} from "./web-fetch.js";
+} from "./web-fetch.ts";
 
 export {
   deepseek,
@@ -34,7 +34,7 @@ export {
   webSearch,
   webSearchInputSchema,
   webSearchOutputSchema,
-} from "./web-search.js";
+} from "./web-search.ts";
 export type {
   DeepSeekOptions,
   DeepSeekRequest,
@@ -51,4 +51,4 @@ export type {
   WebSearchInput,
   WebSearchOptions,
   WebSearchResult,
-} from "./web-search.js";
+} from "./web-search.ts";

@@ -8,7 +8,7 @@ import {
   validateURL,
   type FetchBackend,
   type FetchedContent,
-} from "../fetch.js";
+} from "../fetch.ts";
 
 /**
  * DeepSeek Fetch API (`POST /v1/tools/fetch`) as a `webFetch` fetcher.

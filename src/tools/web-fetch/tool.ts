@@ -1,6 +1,6 @@
 import { tool, type LanguageModel } from "ai";
 import { z } from "zod";
-import { defaultModel } from "../../model.js";
+import { defaultModel } from "../../model.ts";
 import {
   applyPromptToMarkdown,
   DEFAULT_USER_AGENT,
@@ -13,8 +13,8 @@ import {
   MAX_MARKDOWN_LENGTH,
   redirectStatusText,
   type FetchBackend,
-} from "./fetch.js";
-import { DESCRIPTION } from "./prompt.js";
+} from "./fetch.ts";
+import { DESCRIPTION } from "./prompt.ts";
 
 export const webFetchInputSchema = z.object({
   url: z.string().url().describe("Absolute URL to fetch."),

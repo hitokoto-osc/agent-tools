@@ -1,8 +1,8 @@
 import { isIP } from "node:net";
 import { generateText, type LanguageModel } from "ai";
 import { LRUCache } from "lru-cache";
-import { isPreapprovedHost } from "./preapproved.js";
-import { makeSecondaryModelPrompt } from "./prompt.js";
+import { isPreapprovedHost } from "./preapproved.ts";
+import { makeSecondaryModelPrompt } from "./prompt.ts";
 
 export const MAX_URL_LENGTH = 2000;
 export const MAX_HTTP_CONTENT_LENGTH = 10 * 1024 * 1024;

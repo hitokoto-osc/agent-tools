@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ToolCallOptions } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
-import { serper, webSearch } from "../../src/tools/web-search/index.js";
-import type { WebSearchInput, WebSearchResult } from "../../src/tools/web-search/index.js";
+import { serper, webSearch } from "../../src/tools/web-search/index.ts";
+import type { WebSearchInput, WebSearchResult } from "../../src/tools/web-search/index.ts";
 
 const apiKey = process.env["SERPER_API_KEY"];
 const required = process.env["AGENT_TOOLS_INTEGRATION_REQUIRED"] === "1";

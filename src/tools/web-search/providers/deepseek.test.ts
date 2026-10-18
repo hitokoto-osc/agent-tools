@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { ZodError } from "zod";
-import { deepseek, type DeepSeekRequest } from "./deepseek.js";
-import { SearchProviderError } from "../types.js";
+import { deepseek, type DeepSeekRequest } from "./deepseek.ts";
+import { SearchProviderError } from "../types.ts";
 
 const originalFetch = globalThis.fetch;
 const originalDeepSeekApiKey = process.env["DEEPSEEK_API_KEY"];

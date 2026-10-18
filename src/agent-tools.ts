@@ -1,7 +1,7 @@
 import type { LanguageModel } from "ai";
-import { defaultModel } from "./model.js";
-import { webFetch, type WebFetchOptions } from "./tools/web-fetch.js";
-import { webSearch, type WebSearchOptions } from "./tools/web-search.js";
+import { defaultModel } from "./model.ts";
+import { webFetch, type WebFetchOptions } from "./tools/web-fetch.ts";
+import { webSearch, type WebSearchOptions } from "./tools/web-search.ts";
 
 export interface AgentToolsOptions {
   model?: LanguageModel;

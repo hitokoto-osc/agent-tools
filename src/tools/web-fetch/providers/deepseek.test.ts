@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import type { ToolCallOptions } from "ai";
 import { MockLanguageModelV3 } from "ai/test";
-import { FetchProviderError } from "../fetch.js";
-import { webFetch, type WebFetchResult } from "../tool.js";
-import { clearDeepSeekFetchCache, deepseekFetch } from "./deepseek.js";
+import { FetchProviderError } from "../fetch.ts";
+import { webFetch, type WebFetchResult } from "../tool.ts";
+import { clearDeepSeekFetchCache, deepseekFetch } from "./deepseek.ts";
 
 const originalFetch = globalThis.fetch;
 const originalDeepSeekApiKey = process.env["DEEPSEEK_API_KEY"];

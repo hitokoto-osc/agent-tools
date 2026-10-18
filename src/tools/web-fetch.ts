@@ -1,1 +1,1 @@
-export * from "./web-fetch/index.js";
+export * from "./web-fetch/index.ts";
